@@ -292,7 +292,7 @@
                                 </div>
 
                                  <div class="col-4">
-                                    <label class="form-label"> الرقم المرجعى للشراء (purchasing order)</label>
+                                    <label class="form-label"> (اختيارى) الرقم المرجعى للشراء (purchasing order)</label>
                                     <div class="">
                                         <input type="text" id="purchaseOrderReference" class="form-control text-center"
                                             name="purchaseOrderReference"
