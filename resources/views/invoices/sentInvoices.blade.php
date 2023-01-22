@@ -55,7 +55,7 @@
                                 <th>@lang('site.internalid') </th>
                                 <th>@lang('site.doc_view')</th>
                                 <th>@lang('site.doc_Download')</th>
-                                {{-- <th>تحميل الفاتورة </th> --}}
+                                <th>تحميل الفاتورة إنجليزى </th>
                                 <th>@lang('site.doc_cancel')</th>
                             </tr>
                         </thead>
@@ -91,6 +91,8 @@
                                         </td>
                                         <td><a href="{{ route('pdf', $invoice['uuid']) }}" class="btn btn-info"
                                                 target="_blank"> @lang('site.download') </a></td>
+                                        <td><a href="{{ route('pdfEnglish', $invoice['uuid']) }}" class="btn btn-info"
+                                                target="_blank"> تحميل الفاتورة pdf انجليزى </a></td>
 
                                         <td>
                                             <form action="{{ route('cancelDocument', $invoice['uuid']) }}"

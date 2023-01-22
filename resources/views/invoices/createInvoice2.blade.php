@@ -278,7 +278,7 @@
 
 
                             <div class="row">
-                                <div class="col-6">
+                                <div class="col-4">
                                     <label for="payment-method-country" class="form-label">
                                         كود النشاط</label>
                                     <div class="">
@@ -290,7 +290,18 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-6">
+
+                                 <div class="col-4">
+                                    <label class="form-label"> الرقم المرجعى للشراء (purchasing order)</label>
+                                    <div class="">
+                                        <input type="text" id="purchaseOrderReference" class="form-control text-center"
+                                            name="purchaseOrderReference"
+                                            placeholder="الرقم المرجعى للشراء">
+                                    </div>
+                                </div>
+
+
+                                <div class="col-4">
                                     <label for="payment-method-country" class="form-label">نوع الوثيقة
                                     </label>
                                     @livewire('type')
