@@ -206,7 +206,7 @@ class manageDoucumentController extends Controller
         // End Bank payment
 
         $trnsformed = json_encode($invoice, JSON_UNESCAPED_UNICODE);
-        $myFileToJson = fopen('D:\laragon\www\transhome\EInvoicing\SourceDocumentJson.json', "w") or die("unable to open file");
+        $myFileToJson = fopen('C:\laragon\www\transhome\EInvoicing\SourceDocumentJson.json', "w") or die("unable to open file");
         fwrite($myFileToJson, $trnsformed);
         return redirect()->route('cer');
 
@@ -402,7 +402,7 @@ class manageDoucumentController extends Controller
         // End Bank payment
 
         $trnsformed = json_encode($invoice, JSON_UNESCAPED_UNICODE);
-        $myFileToJson = fopen('D:\laragon\www\transhome\EInvoicing\SourceDocumentJson.json', "w") or die("unable to open file");
+        $myFileToJson = fopen('C:\laragon\www\transhome\EInvoicing\SourceDocumentJson.json', "w") or die("unable to open file");
         fwrite($myFileToJson, $trnsformed);
         return redirect()->route('cer');
 
@@ -602,9 +602,9 @@ class manageDoucumentController extends Controller
         // End Bank payment
 
         $trnsformed = json_encode($invoice, JSON_UNESCAPED_UNICODE);
-        $myFileToJson = fopen('D:\laragon\www\transhome\EInvoicing\SourceDocumentJson.json', "w") or die("unable to open file");
+        $myFileToJson = fopen('C:\laragon\www\transhome\EInvoicing\SourceDocumentJson.json', "w") or die("unable to open file");
         fwrite($myFileToJson, $trnsformed);
-         $path = 'D:\laragon\www\transhome\EInvoicing\SourceDocumentJson.json';
+         $path = 'C:\laragon\www\transhome\EInvoicing\SourceDocumentJson.json';
         $fullDraftFile = file_get_contents($path);
 
         $draftInvoice = new DraftInvoice();
@@ -632,14 +632,14 @@ class manageDoucumentController extends Controller
     {
         $data = DraftInvoice::find($id)['jsondata'];
         $trnsformed = json_encode($data, JSON_UNESCAPED_UNICODE);
-        $myFileToJson = fopen('D:\laragon\www\transhome\EInvoicing\SourceDocumentJson.json', "w") or die("unable to open file");
+        $myFileToJson = fopen('C:\laragon\www\transhome\EInvoicing\SourceDocumentJson.json', "w") or die("unable to open file");
         fwrite($myFileToJson, $trnsformed);
-        $path = 'D:\laragon\www\transhome\EInvoicing\SourceDocumentJson.json';
+        $path = 'C:\laragon\www\transhome\EInvoicing\SourceDocumentJson.json';
         $fullDraftFile = file_get_contents($path);
         $obj = json_decode($fullDraftFile, true);
         $datetime = $obj['dateTimeIssued'] = date('Y-m-d') . 'T' . date('H:i:s') . 'Z';
         $trnsformed = json_encode($obj, JSON_UNESCAPED_UNICODE);
-        $myFileToJson = fopen('D:\laragon\www\transhome\EInvoicing\SourceDocumentJson.json', "w") or die("unable to open file");
+        $myFileToJson = fopen('C:\laragon\www\transhome\EInvoicing\SourceDocumentJson.json', "w") or die("unable to open file");
         $file = fwrite($myFileToJson, $trnsformed);
         // return $obj;
 
@@ -766,11 +766,11 @@ class manageDoucumentController extends Controller
     public function openBat()
     {
 
-        shell_exec('D:\laragon\www\transhome\EInvoicing/SubmitInvoices2.bat');
-        $path = 'D:\laragon\www\transhome\EInvoicing/FullSignedDocument.json';
-        $path2 = 'D:\laragon\www\transhome\EInvoicing/Cades.txt';
-        $path3 = 'D:\laragon\www\transhome\EInvoicing/CanonicalString.txt';
-        $path4 = 'D:\laragon\www\transhome\EInvoicing/SourceDocumentJson.json';
+        shell_exec('C:\laragon\www\transhome\EInvoicing/SubmitInvoices2.bat');
+        $path = 'C:\laragon\www\transhome\EInvoicing/FullSignedDocument.json';
+        $path2 = 'C:\laragon\www\transhome\EInvoicing/Cades.txt';
+        $path3 = 'C:\laragon\www\transhome\EInvoicing/CanonicalString.txt';
+        $path4 = 'C:\laragon\www\transhome\EInvoicing/SourceDocumentJson.json';
 
         $fullSignedFile = file_get_contents($path);
 
