@@ -2,18 +2,44 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DraftInvoice;
+use App\Models\SentInvoices;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Redirect;
-use App\Models\DraftInvoice;
-use App\Models\SentInvoices;
 
 class manageDoucumentController extends Controller
 {
     public $url1 = "https://id.eta.gov.eg";
     public $url2 = "https://api.invoicing.eta.gov.eg";
     // this is for show sent inovices
+
+     public function allInvoices($id){
+
+          $response = Http::asForm()->post("$this->url1/connect/token", [
+            'grant_type' => 'client_credentials',
+            'client_id' => auth()->user()->details->client_id,
+            'client_secret' => auth()->user()->details->client_secret,
+            'scope' => "InvoicingAPI",
+        ]);
+
+        $showInvoices = Http::withHeaders([
+            "Authorization" => 'Bearer ' . $response['access_token'],
+        ])->get("$this->url2/api/v1.0/documents/search?page=$id&pageSize=50");
+
+        // return $showInvoices;
+
+         $allInvoices = $showInvoices['result'];
+
+        $allMeta = $showInvoices['metadata'];
+        $taxId = auth()->user()->details->company_id;
+
+        return view('invoices.allinvoices', compact('allInvoices', 'allMeta', 'taxId', 'id'));
+
+    }
+
+
     public function sentInvoices($id)
     {
         $response = Http::asForm()->post("$this->url1/connect/token", [
@@ -117,14 +143,14 @@ class manageDoucumentController extends Controller
             "totalSalesAmount" => floatval($request->TotalSalesAmount),
             "netAmount" => floatval($request->TotalNetAmount),
             "taxTotals" => array(
-                array(
-                    "taxType" => "T4",
-                    "amount" => floatval($request->totalt4Amount),
-                ),
-                array(
-                    "taxType" => "T2",
-                    "amount" => floatval($request->totalt2Amount),
-                ),
+                // array(
+                //     "taxType" => "T4",
+                //     "amount" => floatval($request->totalt4Amount),
+                // ),
+                // array(
+                //     "taxType" => "T2",
+                //     "amount" => floatval($request->totalt2Amount),
+                // ),
             ),
             "totalAmount" => floatval($request->totalAmount2),
             "extraDiscountAmount" => floatval($request->ExtraDiscount),
@@ -137,7 +163,7 @@ class manageDoucumentController extends Controller
                 "itemType" => "EGS",
                 "itemCode" => $request->itemCode[$i],
                 // "itemCode" => "10003834",
-                "unitType" => "EA",
+                "unitType" => $request->unitType[$i],
                 "quantity" => floatval($request->quantity[$i]),
                 "internalCode" => "100",
                 "salesTotal" => floatval($request->salesTotal[$i]),
@@ -148,9 +174,9 @@ class manageDoucumentController extends Controller
                 "itemsDiscount" => floatval($request->itemsDiscount[$i]),
 
                 "unitValue" => [
-                    "currencySold" => "USD",
+                    "currencySold" => $request->currencySold,
                     "amountSold" => floatval($request->amountSold[$i]),
-                    "currencyExchangeRate" => floatval($request->currencyExchangeRate[$i]),
+                    "currencyExchangeRate" => floatval($request->currencyExchangeRate),
                     "amountEGP" => floatval($request->amountEGP[$i]),
                 ],
                 "discount" => [
@@ -158,22 +184,45 @@ class manageDoucumentController extends Controller
                     "amount" => floatval($request->discountAmount[$i]),
                 ],
                 "taxableItems" => [
-                    [
+                    // [
 
-                        "taxType" => "T4",
-                        "amount" => floatval($request->t4Amount[$i]),
-                        "subType" => ($request->t4subtype[$i]),
-                        "rate" => floatval($request->t4rate[$i]),
-                    ],
-                    [
-                        "taxType" => "T2",
-                        "amount" => floatval($request->t2Amount[$i]),
-                        "subType" => ($request->t1subtype[$i]),
-                        "rate" => floatval($request->rate[$i]),
-                    ],
+                    //     "taxType" => "T4",
+                    //     "amount" => floatval($request->t4Amount[$i]),
+                    //     "subType" => ($request->t4subtype[$i]),
+                    //     "rate" => floatval($request->t4rate[$i]),
+                    // ],
+                    // [
+                    //     "taxType" => "T2",
+                    //     "amount" => floatval($request->t2Amount[$i]),
+                    //     "subType" => ($request->t1subtype[$i]),
+                    //     "rate" => floatval($request->rate[$i]),
+                    // ],
                 ],
 
             ];
+            if (floatval($request->t4rate[$i]) > 0) {
+                $newArray = [
+
+                    "taxType" => "T4",
+                    "amount" => floatval($request->t4Amount[$i]),
+                    "subType" => ($request->t4subtype[$i]),
+                    "rate" => floatval($request->t4rate[$i]),
+                ];
+
+                array_push($Data['taxableItems'], $newArray);
+
+            }
+
+            if (floatval($request->rate[$i]) > 0) {
+                $newArray2 = [
+                    "taxType" => "T2",
+                    "amount" => floatval($request->t2Amount[$i]),
+                    "subType" => ($request->t1subtype[$i]),
+                    "rate" => floatval($request->rate[$i]),
+                ];
+                array_push($Data['taxableItems'], $newArray2);
+
+            }
             $invoice['invoiceLines'][$i] = $Data;
         }
 
@@ -193,7 +242,24 @@ class manageDoucumentController extends Controller
 
         // this is for reference debit or credit note
         ($request->referencesInvoice ? $invoice['references'] = [$request->referencesInvoice] : "");
+        ($request->purchaseOrderReference ? $invoice['purchaseOrderReference'] = $request->purchaseOrderReference : "");
+
         // End reference debit or credit note
+
+        if (floatval($request->totalt4Amount) > 0) {
+            $newArray = [
+                "taxType" => "T4",
+                "amount" => floatval($request->totalt4Amount),
+            ];
+            array_push($invoice['taxTotals'], $newArray);
+        }
+        if (floatval($request->totalt2Amount) > 0) {
+            $newArray = [
+                "taxType" => "T2",
+                "amount" => floatval($request->totalt2Amount),
+            ];
+            array_push($invoice['taxTotals'], $newArray);
+        }
 
         // this is for Bank payment
 
@@ -211,6 +277,202 @@ class manageDoucumentController extends Controller
         return redirect()->route('cer');
 
     }
+
+    public function draftDollar(Request $request)
+    {
+
+        $validated = $request->validate([
+            // 'receiverCountry' => 'required',
+            // 'receiverCountry' => 'required',
+            // 'receiverGovernate' => 'required',
+            // 'receiverRegionCity' => 'required',
+            'receiverType' => 'required',
+            // 'receiverId' => 'required',
+            // 'receiverName' => 'required',
+            'DocumentType' => 'required',
+            'date' => 'required',
+            'taxpayerActivityCode' => 'required',
+            'internalId' => 'required',
+            'ExtraDiscount' => 'required',
+            'rate' => 'required',
+            'invoiceDescription' => 'required',
+            'itemCode' => 'required',
+            't4subtype' => 'required',
+            't1subtype' => 'required',
+
+        ]);
+
+        $invoice =
+            [
+            "issuer" => array(
+                "address" => array(
+                    "branchID" => "0",
+                    "country" => "EG",
+                    "governate" => auth()->user()->details->governate,
+                    "regionCity" => auth()->user()->details->regionCity,
+                    "street" => auth()->user()->details->street,
+                    "buildingNumber" => auth()->user()->details->buildingNumber,
+                ),
+                "type" => auth()->user()->details->issuerType,
+                "id" => auth()->user()->details->company_id,
+                "name" => auth()->user()->details->company_name,
+            ),
+
+            "receiver" => array(
+                "address" => array(
+
+                ),
+                "type" => $request->receiverType,
+
+            ),
+            "documentType" => $request->DocumentType,
+            "documentTypeVersion" => "1.0",
+            "dateTimeIssued" => $request->date . "T" . date("h:i:s") . "Z",
+            "taxpayerActivityCode" => $request->taxpayerActivityCode,
+            "internalID" => $request->internalId,
+            "invoiceLines" => [
+
+            ],
+            "totalDiscountAmount" => floatval($request->totalDiscountAmount),
+            "totalSalesAmount" => floatval($request->TotalSalesAmount),
+            "netAmount" => floatval($request->TotalNetAmount),
+            "taxTotals" => array(
+                // array(
+                //     "taxType" => "T4",
+                //     "amount" => floatval($request->totalt4Amount),
+                // ),
+                // array(
+                //     "taxType" => "T2",
+                //     "amount" => floatval($request->totalt2Amount),
+                // ),
+            ),
+            "totalAmount" => floatval($request->totalAmount2),
+            "extraDiscountAmount" => floatval($request->ExtraDiscount),
+            "totalItemsDiscountAmount" => floatval($request->totalItemsDiscountAmount),
+        ];
+
+        for ($i = 0; $i < count($request->quantity); $i++) {
+            $Data = [
+                "description" => $request->invoiceDescription[$i],
+                "itemType" => "EGS",
+                "itemCode" => $request->itemCode[$i],
+                // "itemCode" => "10003834",
+                "unitType" => $request->unitType[$i],
+                "quantity" => floatval($request->quantity[$i]),
+                "internalCode" => "100",
+                "salesTotal" => floatval($request->salesTotal[$i]),
+                "total" => floatval($request->totalItemsDiscount[$i]),
+                "valueDifference" => 0.00,
+                "totalTaxableFees" => 0.00,
+                "netTotal" => floatval($request->netTotal[$i]),
+                "itemsDiscount" => floatval($request->itemsDiscount[$i]),
+
+                "unitValue" => [
+                    "currencySold" => $request->currencySold,
+                    "amountSold" => floatval($request->amountSold[$i]),
+                    "currencyExchangeRate" => floatval($request->currencyExchangeRate),
+                    "amountEGP" => floatval($request->amountEGP[$i]),
+                ],
+                "discount" => [
+                    "rate" => 0.00,
+                    "amount" => floatval($request->discountAmount[$i]),
+                ],
+                "taxableItems" => [
+                    // [
+
+                    //     "taxType" => "T4",
+                    //     "amount" => floatval($request->t4Amount[$i]),
+                    //     "subType" => ($request->t4subtype[$i]),
+                    //     "rate" => floatval($request->t4rate[$i]),
+                    // ],
+                    // [
+                    //     "taxType" => "T2",
+                    //     "amount" => floatval($request->t2Amount[$i]),
+                    //     "subType" => ($request->t1subtype[$i]),
+                    //     "rate" => floatval($request->rate[$i]),
+                    // ],
+                ],
+
+            ];
+            if (floatval($request->t4rate[$i]) > 0) {
+                $newArray = [
+
+                    "taxType" => "T4",
+                    "amount" => floatval($request->t4Amount[$i]),
+                    "subType" => ($request->t4subtype[$i]),
+                    "rate" => floatval($request->t4rate[$i]),
+                ];
+
+                array_push($Data['taxableItems'], $newArray);
+
+            }
+
+            if (floatval($request->rate[$i]) > 0) {
+                $newArray2 = [
+                    "taxType" => "T2",
+                    "amount" => floatval($request->t2Amount[$i]),
+                    "subType" => ($request->t1subtype[$i]),
+                    "rate" => floatval($request->rate[$i]),
+                ];
+                array_push($Data['taxableItems'], $newArray2);
+
+            }
+            $invoice['invoiceLines'][$i] = $Data;
+        }
+
+// this is for receiver address
+        ($request->receiverName ? $invoice['receiver']['name'] = $request->receiverName : "");
+        ($request->receiverCountry ? $invoice['receiver']["address"]['country'] = $request->receiverCountry : "");
+        ($request->receiverBuildingNumber ? $invoice['receiver']["address"]['buildingNumber'] = $request->receiverBuildingNumber : "");
+        ($request->street ? $invoice['receiver']["address"]['street'] = $request->street : "");
+        ($request->receiverRegionCity ? $invoice['receiver']["address"]['regionCity'] = $request->receiverRegionCity : "");
+        ($request->receiverGovernate ? $invoice['receiver']["address"]['governate'] = $request->receiverGovernate : "");
+        ($request->receiverPostalCode ? $invoice['receiver']["address"]['postalcode'] = $request->receiverPostalCode : "");
+        ($request->receiverFloor ? $invoice['receiver']["address"]['floor'] = $request->receiverFloor : "");
+        ($request->receiverRoom ? $invoice['receiver']["address"]['room'] = $request->receiverRoom : "");
+        ($request->receiverLandmark ? $invoice['receiver']["address"]['landmark'] = $request->receiverLandmark : "");
+        ($request->receiverAdditionalInformation ? $invoice['receiver']["address"]['additionalInformation'] = $request->receiverAdditionalInformation : "");
+        ($request->receiverId ? $invoice['receiver']['id'] = $request->receiverId : "");
+
+// this is for reference debit or credit note
+        ($request->referencesInvoice ? $invoice['references'] = [$request->referencesInvoice] : "");
+        ($request->purchaseOrderReference ? $invoice['purchaseOrderReference'] = $request->purchaseOrderReference : "");
+
+// End reference debit or credit note
+
+        if (floatval($request->totalt4Amount) > 0) {
+            $newArray = [
+                "taxType" => "T4",
+                "amount" => floatval($request->totalt4Amount),
+            ];
+            array_push($invoice['taxTotals'], $newArray);
+        }
+        if (floatval($request->totalt2Amount) > 0) {
+            $newArray = [
+                "taxType" => "T2",
+                "amount" => floatval($request->totalt2Amount),
+            ];
+            array_push($invoice['taxTotals'], $newArray);
+        }
+
+// this is for Bank payment
+
+        $trnsformed = json_encode($invoice, JSON_UNESCAPED_UNICODE);
+        $myFileToJson = fopen('C:\laragon\www\transhome\EInvoicing\SourceDocumentJson.json', "w") or die("unable to open file");
+        fwrite($myFileToJson, $trnsformed);
+        $path = 'C:\laragon\www\transhome\EInvoicing\SourceDocumentJson.json';
+        $fullDraftFile = file_get_contents($path);
+
+        $draftInvoice = new DraftInvoice();
+        $draftInvoice->tax_id = auth()->user()->details->company_id;
+        $draftInvoice->jsondata = json_decode($fullDraftFile);
+        $draftInvoice->save();
+// echo $fullDraftFile;
+        unlink($path);
+        return redirect()->route('showDraft')->with('success', 'تم حفظ المسودة بنجاح ');
+
+    }
+
     public function invoice(Request $request)
     {
 
@@ -327,7 +589,7 @@ class manageDoucumentController extends Controller
                 ],
 
             ];
-             if (floatval($request->t4rate[$i]) > 0) {
+            if (floatval($request->t4rate[$i]) > 0) {
                 $newArray = [
 
                     "taxType" => "T4",
@@ -374,9 +636,7 @@ class manageDoucumentController extends Controller
         ($request->purchaseOrderReference ? $invoice['purchaseOrderReference'] = $request->purchaseOrderReference : "");
         // End reference debit or credit note
 
-
-
-         if (floatval($request->totalt4Amount) > 0) {
+        if (floatval($request->totalt4Amount) > 0) {
             $newArray = [
                 "taxType" => "T4",
                 "amount" => floatval($request->totalt4Amount),
@@ -408,13 +668,12 @@ class manageDoucumentController extends Controller
 
     }
 
-
     // save draft invoice
 
-   public function draft(Request $request)
+    public function draft(Request $request)
     {
 
-       $validated = $request->validate([
+        $validated = $request->validate([
             // 'receiverCountry' => 'required',
             // 'receiverCountry' => 'required',
             // 'receiverGovernate' => 'required',
@@ -527,7 +786,7 @@ class manageDoucumentController extends Controller
                 ],
 
             ];
-             if (floatval($request->t4rate[$i]) > 0) {
+            if (floatval($request->t4rate[$i]) > 0) {
                 $newArray = [
 
                     "taxType" => "T4",
@@ -574,9 +833,7 @@ class manageDoucumentController extends Controller
         ($request->purchaseOrderReference ? $invoice['purchaseOrderReference'] = $request->purchaseOrderReference : "");
         // End reference debit or credit note
 
-
-
-         if (floatval($request->totalt4Amount) > 0) {
+        if (floatval($request->totalt4Amount) > 0) {
             $newArray = [
                 "taxType" => "T4",
                 "amount" => floatval($request->totalt4Amount),
@@ -604,7 +861,7 @@ class manageDoucumentController extends Controller
         $trnsformed = json_encode($invoice, JSON_UNESCAPED_UNICODE);
         $myFileToJson = fopen('C:\laragon\www\transhome\EInvoicing\SourceDocumentJson.json', "w") or die("unable to open file");
         fwrite($myFileToJson, $trnsformed);
-         $path = 'C:\laragon\www\transhome\EInvoicing\SourceDocumentJson.json';
+        $path = 'C:\laragon\www\transhome\EInvoicing\SourceDocumentJson.json';
         $fullDraftFile = file_get_contents($path);
 
         $draftInvoice = new DraftInvoice();
@@ -617,12 +874,11 @@ class manageDoucumentController extends Controller
 
     }
 
-
     // show all drafts of invoices
 
     public function showDraft()
     {
-        $allDraft = DraftInvoice::where('tax_id',auth()->user()->details->company_id)->orderBy('id', 'desc')->paginate(100);
+        $allDraft = DraftInvoice::where('tax_id', auth()->user()->details->company_id)->orderBy('id', 'desc')->paginate(100);
         return view('draft.index', compact('allDraft'));
     }
 
@@ -657,18 +913,17 @@ class manageDoucumentController extends Controller
 
     // delete invoice from drafts that is sent or no need to it
 
-     public function deleteDraft($id)
+    public function deleteDraft($id)
     {
         $draft = DraftInvoice::find($id);
         $draft->delete();
         return redirect()->route('showDraft')->with('error', 'تم مسح الفاتورة بنجاح ');
     }
 
-
     // this is sent invoices that show our data to user
-     public function SentInvoicesFromDraft()
+    public function SentInvoicesFromDraft()
     {
-        $allSent = SentInvoices::where('tax_id',auth()->user()->details->company_id)->orderBy('id', 'desc')->paginate(100);
+        $allSent = SentInvoices::where('tax_id', auth()->user()->details->company_id)->orderBy('id', 'desc')->paginate(100);
         // return $allSent;
         // foreach($allSent as $all){
         //     echo $all;
@@ -702,11 +957,11 @@ class manageDoucumentController extends Controller
             // $datefrom = $request->datefrom;
             // $dateto = $request->dateto;
             if ($request->datefrom && $request->dateto && $request->freetext) {
-                $query->where('tax_id',auth()->user()->details->company_id)->where('jsondata', "like", "%$freetext%")->whereBetween('created_at', [$datefrom, $dateto])->orWhere('uuid','like',"%$freetext%");
-            }elseif($request->datefrom && $request->dateto){
-                $query->where('tax_id',auth()->user()->details->company_id)->whereBetween('created_at', [$datefrom, $dateto]);
-            }elseif($request->freetext && !null  ){
-                $query->where('tax_id',auth()->user()->details->company_id)->where('jsondata', "like", "%$freetext%")->orWhere('uuid','like',"%$freetext%");
+                $query->where('tax_id', auth()->user()->details->company_id)->where('jsondata', "like", "%$freetext%")->whereBetween('created_at', [$datefrom, $dateto])->orWhere('uuid', 'like', "%$freetext%");
+            } elseif ($request->datefrom && $request->dateto) {
+                $query->where('tax_id', auth()->user()->details->company_id)->whereBetween('created_at', [$datefrom, $dateto]);
+            } elseif ($request->freetext && !null) {
+                $query->where('tax_id', auth()->user()->details->company_id)->where('jsondata', "like", "%$freetext%")->orWhere('uuid', 'like', "%$freetext%");
             }
             // $query->orWhereBetween('created_at', [$datefrom, $dateto])->where('jsondata', "like", "%" . $freetext . "%");
         })->orderBy('created_at', 'desc')->get();
@@ -750,16 +1005,14 @@ class manageDoucumentController extends Controller
 
     }
 
-
     // this is for delete invoice that i was sent before
 
-     public function deleteSentInv($id)
+    public function deleteSentInv($id)
     {
         $deletesent = SentInvoices::find($id);
         $deletesent->delete();
         return redirect()->route('sentofdraft')->with('error', 'تم مسح الفاتورة المرسلة بنجاح ');
     }
-
 
 // this function for signature
 
@@ -786,7 +1039,7 @@ class manageDoucumentController extends Controller
             "Content-Type" => "application/json",
         ])->withBody($fullSignedFile, "application/json")->post("$this->url2/api/v1/documentsubmissions");
 
-      if ($invoice['submissionId'] == !null) {
+        if ($invoice['submissionId'] == !null) {
             // if ($invoice) {
             $sentInvoices = new SentInvoices();
             $sentInvoices->uuid = $invoice['acceptedDocuments'][0]['uuid'];
@@ -850,7 +1103,7 @@ class manageDoucumentController extends Controller
         $unittypes = DB::table('unittypes')->get();
         $allCompanies = DB::table('companies2')->get();
         $taxTypes = DB::table('taxtypes')->get();
-        return view('invoices.createInvoice2', compact('allCompanies', 'codes', 'ActivityCodes', 'taxTypes', 'products','unittypes'));
+        return view('invoices.createInvoice2', compact('allCompanies', 'codes', 'ActivityCodes', 'taxTypes', 'products', 'unittypes'));
     }
 
     // this function for Fill  the customer information
@@ -897,8 +1150,9 @@ class manageDoucumentController extends Controller
         $codes = DB::table('products')->where('status', 'Approved')->get();
         $ActivityCodes = DB::table('activity_code')->get();
         $allCompanies = DB::table('companies2')->get();
+        $unittypes = DB::table('unittypes')->get();
         $taxTypes = DB::table('taxtypes')->get();
-        return view('invoices.createInvoice3', compact('allCompanies', 'codes', 'ActivityCodes', 'taxTypes', 'products'));
+        return view('invoices.createInvoice3', compact('allCompanies', 'codes', 'ActivityCodes', 'taxTypes', 'products', 'unittypes'));
     }
 
     // this function for Fill  the customer information
@@ -1029,9 +1283,9 @@ class manageDoucumentController extends Controller
         );
         // return ($cancel);
         if ($cancel->ok()) {
-            return redirect()->route('sentInvoices',"1")->with('success', 'تم تقديم طلب الغاء الفاتورة بنجاح سيتم الموافقة او الرفض فى خلال 7 ايام');
+            return redirect()->route('sentInvoices', "1")->with('success', 'تم تقديم طلب الغاء الفاتورة بنجاح سيتم الموافقة او الرفض فى خلال 7 ايام');
         } else {
-            return redirect()->route('sentInvoices',"1")->with('error', $cancel['error']['details'][0]['message']);
+            return redirect()->route('sentInvoices', "1")->with('error', $cancel['error']['details'][0]['message']);
         }
     }
 
@@ -1055,9 +1309,9 @@ class manageDoucumentController extends Controller
         );
         // return ($cancel);
         if ($cancel->ok()) {
-            return redirect()->route('receivedInvoices','1')->with('success', 'تم تقديم طلب رفض الفاتورة بنجاح سيتم الموافقة او الرفض فى خلال 7 ايام');
+            return redirect()->route('receivedInvoices', '1')->with('success', 'تم تقديم طلب رفض الفاتورة بنجاح سيتم الموافقة او الرفض فى خلال 7 ايام');
         } else {
-            return redirect()->route('receivedInvoices','1')->with('error', $cancel['error']['details'][0]['message']);
+            return redirect()->route('receivedInvoices', '1')->with('error', $cancel['error']['details'][0]['message']);
         }
 
     }

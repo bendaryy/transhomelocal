@@ -105,45 +105,49 @@ Route::group(
             Route::get('country', [main::class, 'country'])->name('country');
 
             Route::get('nontaxx', [main::class, 'nontaxx'])->name('notaxx');
+            // show all invoices
+
+Route::get('allInvoices/{id}', [manageDoucumentController::class, 'allInvoices'])->name('allinvoices')->middleware('auth');
+
 
 // all invoice status
 
-            Route::get('sentInvoices/{id}', [manageDoucumentController::class, 'sentInvoices'])->name('sentInvoices');
-            Route::get('receivedInvoices/{id}', [manageDoucumentController::class, 'receivedInvoices'])->name('receivedInvoices');
-            Route::get('createInvoice', [manageDoucumentController::class, 'createInvoice'])->name('createInvoice');
-            Route::get('createInvoice/create2', [manageDoucumentController::class, 'createInvoice2'])->name('createInvoice2');
-            Route::get('createInvoiceDollar', [manageDoucumentController::class, 'createInvoiceDollar'])->name('createInvoiceDollar');
-            Route::get('createInvoiceDollar2', [manageDoucumentController::class, 'createInvoiceDollar2'])->name('createInvoiceDollar2');
-            Route::get('testInvoice', [manageDoucumentController::class, 'createInvoice3'])->name('createInvoice3');
-            Route::get('testInvoice/test2', [manageDoucumentController::class, 'createInvoice4'])->name('createInvoice4');
+            Route::get('sentInvoices/{id}', [manageDoucumentController::class, 'sentInvoices'])->name('sentInvoices')->middleware('auth');
+            Route::get('receivedInvoices/{id}', [manageDoucumentController::class, 'receivedInvoices'])->name('receivedInvoices')->middleware('auth');
+            Route::get('createInvoice', [manageDoucumentController::class, 'createInvoice'])->name('createInvoice')->middleware('auth');
+            Route::get('createInvoice/create2', [manageDoucumentController::class, 'createInvoice2'])->name('createInvoice2')->middleware('auth');
+            Route::get('createInvoiceDollar', [manageDoucumentController::class, 'createInvoiceDollar'])->name('createInvoiceDollar')->middleware('auth');
+            Route::get('createInvoiceDollar2', [manageDoucumentController::class, 'createInvoiceDollar2'])->name('createInvoiceDollar2')->middleware('auth');
+            Route::get('testInvoice', [manageDoucumentController::class, 'createInvoice3'])->name('createInvoice3')->middleware('auth');
+            Route::get('testInvoice/test2', [manageDoucumentController::class, 'createInvoice4'])->name('createInvoice4')->middleware('auth');
 
 // send invoice
-            Route::post('storeInvoice', [manageDoucumentController::class, 'invoice'])->name('storeInvoice');
-            Route::post('storeInvoiceDollar', [manageDoucumentController::class, 'invoiceDollar'])->name('storeInvoiceDollar');
+            Route::post('storeInvoice', [manageDoucumentController::class, 'invoice'])->name('storeInvoice')->middleware('auth');
+            Route::post('storeInvoiceDollar', [manageDoucumentController::class, 'invoiceDollar'])->name('storeInvoiceDollar')->middleware('auth');
 
 //signature
-            Route::get('cer', [manageDoucumentController::class, 'openBat'])->name('cer');
+            Route::get('cer', [manageDoucumentController::class, 'openBat'])->name('cer')->middleware('auth');
 
 // show pdf
 
-            Route::get('showPdf/{uuid}', [manageDoucumentController::class, 'showPdfInvoice'])->name('pdf');
-            Route::get('showPdfEnglish/{uuid}', [manageDoucumentController::class, 'showPdfInvoiceEnglish'])->name('pdfEnglish');
+            Route::get('showPdf/{uuid}', [manageDoucumentController::class, 'showPdfInvoice'])->name('pdf')->middleware('auth');
+            Route::get('showPdfEnglish/{uuid}', [manageDoucumentController::class, 'showPdfInvoiceEnglish'])->name('pdfEnglish')->middleware('auth');
 
 // for cancel sent invoices
-            Route::put('cancelDocument/{uuid}', [manageDoucumentController::class, 'cancelDocument'])->name('cancelDocument');
+            Route::put('cancelDocument/{uuid}', [manageDoucumentController::class, 'cancelDocument'])->name('cancelDocument')->middleware('auth');
 
 // for reject recived invoices
             Route::put('rejectDocument/{uuid}', [manageDoucumentController::class, 'RejectDocument'])->name('RejectDocument')->middleware('auth');
-            Route::get('pending', [products::class, 'pending'])->name('pending');
+            Route::get('pending', [products::class, 'pending'])->name('pending')->middleware('auth');
 
-            Route::get('add-package', [PackagesController::class, 'addFullPackage'])->name('addFullPackage');
-            Route::get('add-package-summary', [PackagesController::class, 'addSummaryPackage'])->name('addPackageSummary');
+            Route::get('add-package', [PackagesController::class, 'addFullPackage'])->name('addFullPackage')->middleware('auth');
+            Route::get('add-package-summary', [PackagesController::class, 'addSummaryPackage'])->name('addPackageSummary')->middleware('auth');
 
-            Route::post('add-sendPackage-full', [PackagesController::class, 'sendFullPackage'])->name('sendFullPackage');
-            Route::post('add-sendPackage-summary', [PackagesController::class, 'sendSummaryPackage'])->name('sendSummaryPackage');
-            Route::get('allPackages', [PackagesController::class, 'showAllPackages'])->name('showAllPackages');
-            Route::get('downloadPackage/{id}', [PackagesController::class, 'downloadPackage'])->name('downloadPackage');
-            Route::get('notification', [notificationController::class, 'getNotifications'])->name('getNotifications');
+            Route::post('add-sendPackage-full', [PackagesController::class, 'sendFullPackage'])->name('sendFullPackage')->middleware('auth');
+            Route::post('add-sendPackage-summary', [PackagesController::class, 'sendSummaryPackage'])->name('sendSummaryPackage')->middleware('auth');
+            Route::get('allPackages', [PackagesController::class, 'showAllPackages'])->name('showAllPackages')->middleware('auth');
+            Route::get('downloadPackage/{id}', [PackagesController::class, 'downloadPackage'])->name('downloadPackage')->middleware('auth');
+            Route::get('notification', [notificationController::class, 'getNotifications'])->name('getNotifications')->middleware('auth');
             // Route::get('getNotificationsDashboard', [notificationController::class, 'getNotificationsDashboard'])->name('getNotificationsDashboard');
             Route::get('livewire', function () {
                 return view('invoices.testlivewire');
@@ -166,20 +170,21 @@ Route::group(
     });
 
 // get company api
-Route::get('getcompany/{id}', [CustomerController::class, 'getCompany'])->name('getCompany');
+Route::get('getcompany/{id}', [CustomerController::class, 'getCompany'])->name('getCompany')->middleware('auth');
 
 // Remote Server
-Route::get('updatestatus', [remote::class, 'updatestatus'])->name('updatestatus');
+Route::get('updatestatus', [remote::class, 'updatestatus'])->name('updatestatus')->middleware('auth');
 
 // draft
-route::post('draft', [manageDoucumentController::class, 'draft'])->name('draft');
-route::get('alldraft', [manageDoucumentController::class, 'showDraft'])->name('showDraft');
-route::post('sendDraft/{id}', [manageDoucumentController::class, 'sendDraftData'])->name('sendDraftData');
-route::get('showdetalils/{id}', [manageDoucumentController::class, 'showDraftDetails'])->name('showDraftDetails');
-route::delete('deletedraft/{id}', [manageDoucumentController::class, 'deleteDraft'])->name('deleteDraft');
+route::post('draft', [manageDoucumentController::class, 'draft'])->name('draft')->middleware('auth');
+route::post('draftDollar', [manageDoucumentController::class, 'draftDollar'])->name('draftDollar')->middleware('auth');
+route::get('alldraft', [manageDoucumentController::class, 'showDraft'])->name('showDraft')->middleware('auth');
+route::post('sendDraft/{id}', [manageDoucumentController::class, 'sendDraftData'])->name('sendDraftData')->middleware('auth');
+route::get('showdetalils/{id}', [manageDoucumentController::class, 'showDraftDetails'])->name('showDraftDetails')->middleware('auth');
+route::delete('deletedraft/{id}', [manageDoucumentController::class, 'deleteDraft'])->name('deleteDraft')->middleware('auth');
 
 //sent
-route::get('sentofdraft', [manageDoucumentController::class, 'SentInvoicesFromDraft'])->name('sentofdraft');
-route::get('searchInSentInv', [manageDoucumentController::class, 'searchInSentInv'])->name('searchInSentInv');
-route::get('showsentdetails/{uuid}', [manageDoucumentController::class, 'showSentInvDetails'])->name('showsentdetails');
-route::delete('deletesent/{id}', [manageDoucumentController::class, 'deleteSentInv'])->name('deleteSentInv');
+route::get('sentofdraft', [manageDoucumentController::class, 'SentInvoicesFromDraft'])->name('sentofdraft')->middleware('auth');
+route::get('searchInSentInv', [manageDoucumentController::class, 'searchInSentInv'])->name('searchInSentInv')->middleware('auth');
+route::get('showsentdetails/{uuid}', [manageDoucumentController::class, 'showSentInvDetails'])->name('showsentdetails')->middleware('auth');
+route::delete('deletesent/{id}', [manageDoucumentController::class, 'deleteSentInv'])->name('deleteSentInv')->middleware('auth');

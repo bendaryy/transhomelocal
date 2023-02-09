@@ -269,9 +269,18 @@
 
 
                                 <td style="padding: 20px">{{ $invoice['itemsDiscount'] }}</td>
-                                <td style="padding: 20px">{{ $invoice['total'] }}
+                                <td style="padding: 20px">   @if( $invoice['unitValue']['currencySold']  == "EGP")
+                                    {{ $invoice['total'] }}
+                                    @else
+                                   {{ number_format((float)$invoice['salesTotal']  /  $invoice['unitValue']['currencyExchangeRate'] , 2, '.', '') }}
+                                    @endif
                                     {{ $invoice['unitValue']['currencySold'] }}</td>
                             </tr>
+
+                              @php
+                                $currency =  $invoice['unitValue']['currencySold'];
+                                $foriegnCurrencyExchangeRate =  $invoice['unitValue']['currencyExchangeRate'];
+                            @endphp
                         @endforeach
 
 
@@ -320,7 +329,17 @@
                             @endisset
                             <td>{{ $draft['totalItemsDiscountAmount'] }}</td>
                             <td>{{ $draft['extraDiscountAmount'] }}</td>
-                            <td style="color:red;font-weight: bold">{{ $draft['totalAmount'] }}</td>
+                            <td style="color:red;font-weight: bold">
+                                  @if($currency == "EGP")
+                                {{ $draft['totalAmount'] }} {{ $currency }}
+                                @else
+                                {{ $currency }}
+                                {{ number_format((float)$draft['totalAmount'] / $foriegnCurrencyExchangeRate , 2, '.', '') }} {{ $currency }}
+                                @endif
+
+
+
+                            </td>
 
                         </tr>
 

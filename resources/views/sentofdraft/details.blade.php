@@ -82,7 +82,7 @@
                 </div>
             @endif
         </div>
-        <h3 style="text-align: center;margin:20px">بيانات العميل</h3>
+        <h3 style="text-align: center;margin:20px">بيانات  العميل</h3>
         <div class="card">
             <div class="card-body">
                 <div class="table-responsive">
@@ -241,9 +241,21 @@
 
 
                                 <td style="padding: 20px">{{ $invoice['itemsDiscount'] }}</td>
-                                <td style="padding: 20px">{{ $invoice['total'] }}
-                                    {{ $invoice['unitValue']['currencySold'] }}</td>
+                                <td style="padding: 20px">
+                                    @if( $invoice['unitValue']['currencySold']  == "EGP")
+                                    {{ $invoice['total'] }}
+                                    @else
+                                    {{-- {{ $invoice['total']  /  $invoice['unitValue']['currencyExchangeRate']}} --}}
+                                    {{ number_format((float)$invoice['salesTotal']  /  $invoice['unitValue']['currencyExchangeRate'] , 2, '.', '') }}
+                                    @endif
+                                    {{ $invoice['unitValue']['currencySold'] }}
+                                </td>
                             </tr>
+
+                            @php
+                                $currency =  $invoice['unitValue']['currencySold'];
+                                $foriegnCurrencyExchangeRate =  $invoice['unitValue']['currencyExchangeRate'];
+                            @endphp
                         @endforeach
 
 
@@ -296,7 +308,15 @@
                             <td>{{ $allSent[0]['jsondata']['documents'][0]['totalItemsDiscountAmount'] }}</td>
                             <td>{{ $allSent[0]['jsondata']['documents'][0]['extraDiscountAmount'] }}</td>
                             <td style="color:red;font-weight: bold">
-                                {{ $allSent[0]['jsondata']['documents'][0]['totalAmount'] }}</td>
+                                @if($currency == "EGP")
+                                {{ $allSent[0]['jsondata']['documents'][0]['totalAmount'] }} {{ $currency }}
+                                @else
+                                {{ number_format((float)$allSent[0]['jsondata']['documents'][0]['totalAmount'] / $foriegnCurrencyExchangeRate , 2, '.', '') }}
+                                {{-- {{ $allSent[0]['jsondata']['documents'][0]['totalAmount'] / $foriegnCurrencyExchangeRate }}  --}}
+                                {{ $currency }}
+                                @endif
+
+                            </td>
 
                         </tr>
 

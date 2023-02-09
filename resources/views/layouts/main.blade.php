@@ -116,6 +116,9 @@
                         <div class="menu-title">@lang('site.documents')</div>
                     </a>
                     <ul>
+                        <li> <a href="{{ route('allinvoices','1') }}">
+                                <i class="bx bx-right-arrow-alt"></i>جميع الفواتير</a>
+                        </li>
                         <li> <a href="{{ route('sentInvoices', '1') }}">
                                 <i class="bx bx-right-arrow-alt"></i>@lang('site.sent_documents')</a>
                         </li>
@@ -125,9 +128,9 @@
                         <li> <a href="{{ route('createInvoice') }}">
                                 <i class="bx bx-right-arrow-alt"></i>اضافة وثيقة جديدة</a>
                         </li>
-                        {{-- <li> <a href="{{ route('createInvoiceDollar') }}">
-                                <i class="bx bx-right-arrow-alt"></i>اضافة وثيقة بالدولار</a>
-                        </li> --}}
+                        <li> <a href="{{ route('createInvoiceDollar') }}">
+                                <i class="bx bx-right-arrow-alt"></i>اضافة وثيقة بالعملة الأجنبية</a>
+                        </li>
                     </ul>
                 </li>
 
