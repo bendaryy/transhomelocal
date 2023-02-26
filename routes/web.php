@@ -107,8 +107,7 @@ Route::group(
             Route::get('nontaxx', [main::class, 'nontaxx'])->name('notaxx');
             // show all invoices
 
-Route::get('allInvoices/{id}', [manageDoucumentController::class, 'allInvoices'])->name('allinvoices')->middleware('auth');
-
+            // Route::get('allInvoices/{id}', [manageDoucumentController::class, 'allInvoices'])->name('allinvoices')->middleware('auth');
 
 // all invoice status
 
@@ -164,6 +163,14 @@ Route::get('allInvoices/{id}', [manageDoucumentController::class, 'allInvoices']
             Route::get('requestRejected/{id}', [manageDoucumentController::class, 'requestRejected'])->name('requestRejected')->middleware('auth');
             Route::put('DeclineRejectDocument/{uuid}', [manageDoucumentController::class, 'DeclineRejectDocument'])->name('declineRejectDocument')->middleware('auth');
             Route::put('DeclineCancelDocument/{uuid}', [manageDoucumentController::class, 'DeclineCancelDocument'])->name('declineCancellDocument')->middleware('auth');
+
+            // show all invoices
+
+            Route::get('allInvoices', [manageDoucumentController::class, 'allInvoices'])->name('allinvoices')->middleware('auth');
+
+            Route::get('searchAll', function () {
+                return view('invoices.allinvoices');
+            })->name('searchAll');
 
         });
 
